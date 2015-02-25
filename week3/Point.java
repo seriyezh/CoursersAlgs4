@@ -21,11 +21,11 @@ public class Point implements Comparable<Point> {
     private final int y;                              // y coordinate
 
     private class SlopeComparator implements Comparator<Point>
-    {
-        private Point p = new Point(x, y);
-    
+    {    
         public int  compare(Point p1, Point p2)
         {
+            Point p = new Point(x, y);
+        
             if (p1.y == p2.y && p1.x != p2.x) return 0;
             if (p1.y != p2.y && p1.x == p2.x) return (int) Double.POSITIVE_INFINITY;
             if (p1.compareTo(p2) == 0) return (int) Double.NEGATIVE_INFINITY;
@@ -33,11 +33,6 @@ public class Point implements Comparable<Point> {
             if (p.slopeTo(p1) < p.slopeTo(p2)) return -1;
             
             return 1;
-        }
-        
-        public boolean  equals(Object obj)
-        {
-            return p.compareTo((Point) obj) == 0;
         }
     }
     
@@ -66,7 +61,7 @@ public class Point implements Comparable<Point> {
         if (this.y != that.y && this.x == that.x) return Double.POSITIVE_INFINITY;
         if (this.compareTo(that) == 0) return Double.NEGATIVE_INFINITY;
     
-        return (that.y - this.y)/(that.x - this.x);
+        return (double)(that.y - this.y)/((double)(that.x - this.x));
     }
 
     // is this point lexicographically smaller than that one?
@@ -88,5 +83,9 @@ public class Point implements Comparable<Point> {
     // unit test
     public static void main(String[] args) {
         /* YOUR CODE HERE */
+        Point p = new Point(10000, 0);
+        Point p1 = new Point(6000, 7000);
+        
+        StdOut.println(p.slopeTo(p1));
     }
 }
