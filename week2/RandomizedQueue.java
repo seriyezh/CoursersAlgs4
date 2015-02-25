@@ -1,121 +1,110 @@
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
-/**
- * @author Roman Yegorov
- */
 public class RandomizedQueue<Item> implements Iterable<Item> {
     
-    private Item[] q;            // queue elements
-    private int N = 0;           // number of elements on queue
-    private int first = 0;       // index of first element of queue
-    private int last  = 0;       // index of next available slot
+    private int N;    
+    private Item[] a = (Item[])new Object[1];
     
-    /**
-     * construct an empty randomized queue
-     */
-    public RandomizedQueue(){
-        // cast needed since no generic array creation in Java
-        q = (Item[]) new Object[2];
-    }
-    
-    /**
-     * is the queue empty?
-     */
-    public boolean isEmpty(){
-        return N == 0;
-    }
-    
-    /**
-     * return the number of items on the queue
-     */
-    public int size(){
-        return N;
-    }
-    
-    // resize the underlying array
-    private void resize(int max) {
-        assert max >= N;
-        Item[] temp = (Item[]) new Object[max];
-        for (int i = 0; i < N; i++) {
-            temp[i] = q[(first + i) % q.length];
-        }
-        q = temp;
-        first = 0;
-        last  = N;
-    }
-    
-    /**
-     * add the item
-     */
-    public void enqueue(Item item){
-        // double size of array if necessary and recopy to front of array
-        if (N == q.length) resize(2*q.length);   // double size of array if necessary
-        q[last++] = item;                        // add item
-        if (last == q.length) last = 0;          // wrap-around
-        N++;
-    }
-    
-    /**
-     * delete and return a random item
-     */
-    public Item dequeue(){
-        if (isEmpty()) throw new NoSuchElementException("Queue underflow");
-        
-        int index = StdRandom.uniform(N);
-        Item item =  q[index];
-        q[index] = q[first];        
-        q[first] = null;                            // to avoid loitering
-        N--;
-        first++;
-        if (first == q.length) first = 0;           // wrap-around
-        // shrink size of array if necessary
-        if (N > 0 && N == q.length/4) resize(q.length/2); 
-        return item;
-    }
-    
-    /**
-     * return (but do not delete) a random item
-     */
-    public Item sample(){
-        if (isEmpty()) throw new NoSuchElementException("Queue underflow");
-        
-        int index = StdRandom.uniform(N);
-        Item item = q[index];
-        return item;
-    }
-    
-    /**
-     * return an independent iterator over items in random order
-     */
-    public Iterator<Item> iterator(){
-        return new ArrayIterator();
-    }
-    
-    // an iterator, doesn't implement remove() since it's optional
-    private class ArrayIterator implements Iterator<Item> {
-        private int i = 0;
-        public boolean hasNext()  { return i < N;                               }
-        public void remove()      { throw new UnsupportedOperationException();  }
-
-        public Item next() {
-            if (!hasNext()) throw new NoSuchElementException();
-            Item item = q[(i + first) % q.length];
-            i++;
-            return item;
-        }
-    }
-    
-    /**
-     * unit testing
-     */
-    public static void main(String[] args){
-        ResizingArrayQueue<String> q = new ResizingArrayQueue<String>();
-        while (!StdIn.isEmpty()) {
-            String item = StdIn.readString();
-            if (!item.equals("-")) q.enqueue(item);
-            else if (!q.isEmpty()) StdOut.print(q.dequeue() + " ");
-        }
-        StdOut.println("(" + q.size() + " left on queue)");
-    }
+   public RandomizedQueue()                 // construct an empty randomized queue
+   {}
+   
+   private void resize(int max)
+   {
+       Item[] temp = (Item[])new Object[max];
+       int j = 0;
+       for (int i = 0; i < a.length; i++)
+           if (a[i] != null) 
+           {
+               temp[j++] = a[i];               
+           }
+       
+       a = temp;
+   }
+   
+   public boolean isEmpty()                 // is the queue empty?
+   {
+       return N == 0;
+   }
+   
+   public int size()                        // return the number of items on the queue
+   {
+       return N;
+   }
+   
+   public void enqueue(Item item)           // add the item
+   {
+       if (item == null) throw new java.lang.NullPointerException();
+       
+       if (N == a.length) resize(2*a.length);
+       a[N++] = item;
+   }
+   
+   public Item dequeue()                    // remove and return a random item
+   {
+       if (isEmpty()) throw new java.util.NoSuchElementException();
+       
+       int index = StdRandom.uniform(a.length);
+       Item item = a[index];
+       a[index] = null;
+       N--;       
+       
+       if (N > 0 && N == a.length/4) resize(a.length/2);
+       
+       return item;
+   }
+   
+   public Item sample()                     // return (but do not remove) a random item
+   {
+       if (isEmpty()) throw new java.util.NoSuchElementException();
+       
+       int index = StdRandom.uniform(a.length);
+       return a[index];
+   }
+   
+   private class RandomIterator implements Iterator<Item>
+   {
+       private int i = a.length;
+       private Item[] rand;
+       
+       public RandomIterator()
+       {
+           Item[] temp = a;
+           StdRandom.shuffle(temp);
+           rand = temp;
+       }
+       
+       public boolean hasNext() { return i > 0;  }
+       public Item next() 
+       { 
+            if (i == 0) throw new java.util.NoSuchElementException();
+            
+            /*if (rand[i - 1] == null) 
+            {
+                i--;
+                next();
+            }*/
+            
+           return rand[--i];
+       }       
+       public void remove() { throw new java.lang.UnsupportedOperationException(); }
+   }
+   
+   public Iterator<Item> iterator()         // return an independent iterator over items in random order
+   {
+       return new RandomIterator();
+   }
+   
+   public static void main(String[] args)   // unit testing
+   {
+       RandomizedQueue<Integer> r = new RandomizedQueue<Integer>();
+       for (int i = 0; i < 10; i++)
+           r.enqueue(i);
+       
+       /*Iterator iterator = r.iterator();
+       while (iterator.hasNext())
+           StdOut.println(iterator.next());*/
+       
+       for (int i = 0; i < 10; i++)
+           StdOut.println(r.dequeue());
+   }
 }

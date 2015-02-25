@@ -1,129 +1,133 @@
+import java.util.Iterator;
+
 public class Deque<Item> implements Iterable<Item> {
-    
-    private Item[] a;
+
+    private Node first;
+    private Node last;
     private int N;
     
-   /**
-    * construct an empty deque
-    */
-    public Deque(){
-        a = (Item[]) new Object[2];
+    private class Node
+    {
+        Item item;
+        Node next;
+        Node prev;
     }
+
+   public Deque()                           
+   {   }
+   
+   public boolean isEmpty()                 
+   {
+    return N == 0;
+   }
+   
+   public int size()                        
+   {
+    return N;
+   }
+   
+   public void addFirst(Item item)          
+   {
+    if (item == null)
+        throw new java.lang.NullPointerException();
     
-    /**
-     * is the deque empty?
-     */
-    public boolean isEmpty(){
-        return N == 0;
+    if (!isEmpty())
+    {
+        Node oldFirst = first;
+        first = new Node();
+        first.item = item;
+        first.next = oldFirst;
+        oldFirst.prev = first;        
+    }        
+    else{
+        first = new Node();
+        first.item = item;
+        last = first;
     }
-    /**
-     * return the number of items on the deque
-     */
-    public int size(){
-        return N;
-    }
+    N++;
+   }
+   
+   public void addLast(Item item)           
+   {
+    if (item == null)
+        throw new java.lang.NullPointerException();
     
-    // resize the underlying array holding the elements
-    private void resize(int capacity) {
-        assert capacity >= N;
-        Item[] temp = (Item[]) new Object[capacity];
-        for (int i = 0; i < N; i++) {
-            temp[i] = a[i];
-        }
-        a = temp;
+    if (!isEmpty())
+    {
+        Node oldLast = last;
+        last = new Node();
+        last.item = item;
+        last.prev = oldLast;
+        oldLast.next = last;        
     }
+    else
+    {
+        first = new Node();
+        first.item = item;
+        last = first;        
+    }
+    N++;
+   }
+   
+   public Item removeFirst()                
+   {
+    if (isEmpty())
+        throw new java.util.NoSuchElementException();
     
-    /**
-     * insert the item at the front
-     */
-    public void addFirst(Item item){
-        if(item == null) throw new NullPointerException("Null item isn't allowed");
+    Item item = first.item;
+    first = first.next;
+    if (first != null)
+        first.prev = null;
+    else
+        last = null;
+    N--;
+    return item;    
+   }
+   
+   public Item removeLast()                 
+   {
+    if (isEmpty())
+        throw new java.util.NoSuchElementException();
+    
+    Item item = last.item;
+    last = last.prev;
+    if (last != null)
+        last.next = null;
+    else
+        first = null;
+    N--;
+    return item;
+   }
+   
+   public Iterator<Item> iterator()
+   {
+    return new DequeIterator();
+   }
+   
+   private class DequeIterator implements Iterator<Item>
+   {
+    private Node current = first;
+    public boolean hasNext()
+    {
+        return current != null;
+    }
+    public Item next()
+    {
+        if (current == null)
+            throw new java.util.NoSuchElementException();
         
-        N++;        
-        if(N == a.length)
-			resize(2*a.length);		
-                
-        for(int i = N; i >= 0; i--){
-            a[i+1] = a[i];
-        }
-        a[0] = item;;
-    }
-    
-    /**
-     * insert the item at the end
-     */
-    public void addLast(Item item){
-        if(item == null) throw new NullPointerException("Null item isn't allowed");        
-        if (N == a.length) resize(2*a.length);
-        a[N++] = item;
-    }
-    
-    /**
-     * delete and return the item at the front
-     */
-    public Item removeFirst(){
-        if (isEmpty()) throw new NoSuchElementException("Stack underflow");
-        Item item = a[0];
-        
-        for(int i = 1; i < N; i++){
-            a[i-1] = a[i];
-        }
-        a[N] = null;
-        N--;
+        Item item = current.item;
+        current = current.next;
         return item;
     }
-    
-    /**
-     * delete and return the item at the end
-     */
-    public Item removeLast(){
-        if (isEmpty()) throw new NoSuchElementException("Stack underflow");
-        Item item = a[N-1];
-        a[N-1] = null;                              // to avoid loitering
-        N--;
-        // shrink size of array if necessary
-        if (N > 0 && N == a.length/4) resize(a.length/2);
-        return item;        
+    public void remove()
+    {
+        throw new java.lang.UnsupportedOperationException();
     }
+   }
+   
+   public static void main(String[] args)   
+   {
     
-    /**
-     * return an iterator over items in order from front to end
-     */
-    public Iterator<Item> iterator(){
-        return new ReverseArrayIterator();
-    }
-    
-    private class ReverseArrayIterator implements Iterator<Item> {
-        private int i;
-
-        public ReverseArrayIterator() {
-            i = N;
-        }
-
-        public boolean hasNext() {
-            return i > 0;
-        }
-
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-
-        public Item next() {
-            if (!hasNext()) throw new NoSuchElementException();
-            return a[--i];
-        }
-    }
-    
-    /**
-     * unit testing
-     */
-    public static void main(String[] args){
-        Deque<String> s = new Deque<String>();
-        while (!StdIn.isEmpty()) {
-            String item = StdIn.readString();
-            if (!item.equals("-")) s.addLast(item);
-            else if (!s.isEmpty()) StdOut.print(s.removeFirst() + " ");
-        }
-        StdOut.println("(" + s.size() + " left on stack)");
-    }
+   }
 }
